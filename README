@@ -47,7 +47,15 @@ https://docs.python.org/3/library/argparse.html#argparse.ArgumentParser.add_argu
 The constructor may call `parser.add_argument()` to register options for
 that plugin, if needs to. Those options will be registered in the main
 `aa-scan3` argument parser, with the name of the plugin inserted at the
-begining of the option.
+begining of the option. The values for those options are then set as
+attributes to the single instance of that class.
 
 For example, if the plugin `foo` calls `parser.add_argument("--hello")`,
-then the option `--foo-hello` is registered.
+then the option `--foo-hello` is registered, and the attribute `hello`
+is added to the instance of `foo.Scanner()`.
+
+Two extra attributes are also set, `root_dir` and `staging_dir`, as set
+from the generic `aa-scan3` options of the same names.
+
+NOTE: The attributes are set after the `__init__()` method is called, so
+they are *not* available in `__init__()`.

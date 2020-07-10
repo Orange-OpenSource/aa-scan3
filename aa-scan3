@@ -61,6 +61,13 @@ def main():
 
     args = parser.parse_args()
 
+    base_args = ['root_dir', 'staging_dir']
+    for plugin in plugins:
+        for arg in base_args:
+            setattr(plugins[plugin]["scanner"], arg, getattr(args, arg))
+        for arg in [a for a in dir(args) if a.startswith(plugin+'_')]:
+            setattr(plugins[plugin]["scanner"], arg[len(plugin)+1:], getattr(args, arg))
+
 
 if __name__ == "__main__":
     main()
