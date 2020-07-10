@@ -27,6 +27,26 @@ class AAScanArgParser(argparse.ArgumentParser):
 
         super().add_argument(*args, **kwargs)
 
+    class _ArgGroupPlugin:
+        def __init__(self, plugin, group):
+            self.plugin = plugin
+            self.group = group
+
+        def add_argument(self, *args, **kwargs):
+            new_args = []
+            for a in args:
+                if not a.startswith('--'):
+                    raise ValueError('Incorrect option "{}", only long options allowed'.format(a))
+                new_args.append('--{}-{}'.format(self.plugin, a[2:]))
+
+            if 'default' in kwargs and 'help' in kwargs:
+                kwargs['help'] += ' [default: {}]'.format(kwargs['default'])
+
+            if 'dest' in kwargs:
+                kwargs['dest'] = '{}_{}'.format(self.plugin, kwargs['dest'])
+
+            self.group.add_argument(*new_args, **kwargs)
+
     @classmethod
     def ToggleAction(_, true_list):
         """Return a toggle action class which is true for items in the true_list

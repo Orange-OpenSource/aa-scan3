@@ -38,3 +38,16 @@ underscores and numbers.
 A plugin must contain a docstring at the module-level, that provides
 the help text for that plugin, help text that will be displayed in the
 output of `aa-scan3 --help` in a section dedicated to that plugin.
+
+A plugin must declare a class named `Scanner`. The constructor for that
+class must accept a single parameter, `parser`, which is an object that
+exposes a `add_argument` method that behaves like
+https://docs.python.org/3/library/argparse.html#argparse.ArgumentParser.add_argument[ArgumentParser.add_argument].
+
+The constructor may call `parser.add_argument()` to register options for
+that plugin, if needs to. Those options will be registered in the main
+`aa-scan3` argument parser, with the name of the plugin inserted at the
+begining of the option.
+
+For example, if the plugin `foo` calls `parser.add_argument("--hello")`,
+then the option `--foo-hello` is registered.
