@@ -23,3 +23,18 @@ aa-scan3 takes a set of global options, plus the options specified by
 each plugins.
 
 Run `aa-scan3 -h` for the set of options.
+
+
+Writting a plugin
+-----------------
+
+Plugins must be implemented in Python 3.5, and must work with Python 3.5
+or later. [TBC: where to install plugins?]
+
+Plugins are named by their file name. E.g. a file named 'foo.py' will
+declare a plugin named 'foo'. Plugin names must consist of only letters,
+underscores and numbers.
+
+A plugin must contain a docstring at the module-level, that provides
+the help text for that plugin, help text that will be displayed in the
+output of `aa-scan3 --help` in a section dedicated to that plugin.

@@ -3,11 +3,19 @@
 import os
 
 import aa_scan3.utils
+import aa_scan3.plugins
 
 description = """
 aa-scan3 parses the file passed in parameter, and generates an
 AppArmor profile for it. The file must be a fully-qualified path,
 but relative to the target root directory (see options, below).
+"""
+
+plugins_description = """
+aa-scan3 is plugins-based. The file to scan is passed to each plugin
+in turn, and if the plugin knows how to scan that file, it will do
+so and emit (part of) a profile; if a plugin does not know how to
+handle a file, it just ignores it.
 """
 
 epilog = """
@@ -37,6 +45,15 @@ def main():
                         help='Set profiles in enforced or complain mode, respectively.')
     parser.add_argument('file', metavar='FILE',
                         help='The file to scan and generate an AppArmor profile for')
+
+    # Hack: option group with no arg, just to have a nice
+    # introduction to plugins
+    parser.add_argument_group('PLUGINS', description=plugins_description)
+
+    for plugin in sorted(aa_scan3.plugins.plugins):
+        p = aa_scan3.plugins.plugins[plugin]
+        group = parser.add_argument_group(title='Plugin {}'.format(plugin),
+                                          description=p.__doc__)
 
     args = parser.parse_args()
 
