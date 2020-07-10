@@ -1,0 +1,25 @@
+// vim: ft=asciidoc
+
+Introduction
+------------
+
+aa-scan3 is a tool to help generate AppArmor profiles by inspecting the
+executables to protect with AppArmor.
+
+aa-scan3 is a build-time tool, not a run-time tool; its intended usage
+is during build: it does not attempt to run the executable. Instead, it
+scans it to generate the profile.
+
+"Scanning" is a broad description. aa-scan3 is plugins-based, and all
+plugins are presented the executable. Each plugin has its own "scanning"
+method: inspecting the file for patterns, looking for associated files
+on the side, etc...
+
+
+Calling aa-scan3
+----------------
+
+aa-scan3 takes a set of global options, plus the options specified by
+each plugins.
+
+Run `aa-scan3 -h` for the set of options.

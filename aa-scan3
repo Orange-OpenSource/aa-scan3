@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+
+import os
+
+import aa_scan3.utils
+
+description = """
+aa-scan3 parses the file passed in parameter, and generates an
+AppArmor profile for it. The file must be a fully-qualified path,
+but relative to the target root directory (see options, below).
+"""
+
+epilog = """
+See also the following resources:
+    apparmor(7), apparmor.d(5), apparmor_parser(8),
+    and the AppArmor Wiki <http://wiki.apparmor.net>
+"""
+
+
+def main():
+    def dir_exists(d):
+        if not os.path.isdir(d):
+            parser.error('no such directory: {!r}'.format(d))
+        return os.path.abspath(d)
+
+    parser = aa_scan3.utils.AAScanArgParser(description=description, epilog=epilog,
+                                            usage='%(prog)s [options [...] FILE | --help]')
+
+    parser.add_argument('--root-dir', '-r', metavar='DIR', required=True, type=dir_exists,
+                        help='Treat DIR as the target root directory')
+    parser.add_argument('--staging-dir', '-s', metavar='DIR', required=True, type=dir_exists,
+                        help='Treat DIR as the staging (aka sysroot) directory')
+    parser.add_argument('--output-file', '-o', metavar='FILE',
+                        help='Emit the profile in FILE; default is to emit on stdout')
+    parser.add_argument('--enforce', '--complain', default='--enforce',
+                        action=aa_scan3.utils.AAScanArgParser.ToggleAction(['--enforce']),
+                        help='Set profiles in enforced or complain mode, respectively.')
+    parser.add_argument('file', metavar='FILE',
+                        help='The file to scan and generate an AppArmor profile for')
+
+    args = parser.parse_args()
+
+
+if __name__ == "__main__":
+    main()
