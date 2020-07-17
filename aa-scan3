@@ -56,9 +56,29 @@ def main():
     parser.add_argument_group('PLUGINS', description=plugins_description)
 
     plugins = collections.defaultdict(dict)
-    for plugin in sorted(aa_scan3.plugins.plugins):
+    plugins_type = collections.defaultdict(set)
+    for plugin in aa_scan3.plugins.plugins:
         p = aa_scan3.plugins.plugins[plugin]
-        group = parser.add_argument_group(title='Plugin {}'.format(plugin),
+        plugins[plugin]['type'] = set()
+        if "once" in dir(p.Scanner):
+            plugins[plugin]['type'].add("scan")
+            plugins_type['once'].add(plugin)
+        if "scan" in dir(p.Scanner):
+            plugins[plugin]['type'].add("scan")
+            plugins_type['scan'].add(plugin)
+        if "mangle" in dir(p.Scanner):
+            plugins[plugin]['type'].add("mangle")
+            plugins_type['mangle'].add(plugin)
+        if "emit" in dir(p.Scanner):
+            plugins[plugin]['type'].add("mangle")
+            plugins_type['emit'].add(plugin)
+        if len(plugins[plugin]['type']) == 0:
+            raise NotImplementedError('Plugin {} is neither scan nor mangle'.format(plugin))
+
+    for plugin in sorted(plugins):
+        p = aa_scan3.plugins.plugins[plugin]
+        group = parser.add_argument_group(title='Plugin {} [{}]'.format(plugin,
+                                                                        ', '.join(plugins[plugin]['type'])),
                                           description=p.__doc__)
         plugins[plugin]["scanner"] = p.Scanner(aa_scan3.utils.AAScanArgParser._ArgGroupPlugin(plugin,
                                                                                               group))

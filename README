@@ -102,3 +102,39 @@ methods:
 
 The `logger` attribute is callable, which is equivalent to calling
 `logger.debug()`.
+
+There are two types of plugins:
+
+* +scan+ plugins, which are responsible for scanning a file and
+  generating AppArmor rules (patterns, capabilities, network...);
+* +mangle+ plugins, which are responsible for transforming the path
+  in the AppArmor pattern rules.
+
+A +scan+ plugin must implement either or both the following methods in
+its `Scanner` class:
+
+* `scan(path)`, called by +aa-scan3+ for each file it wants to scan,
+  should return the list of addtional files to scan next to complete
+  the profile;
+
+* `once(path)`, like `scan()`, but called only once before any `scan()`
+  method of any plugin is ever called, and should return a list like
+  `scan()` does.
+
+A +mangle+ plugin must implement either or both the following methods
+in its `Scanner` class:
+
+* `mangle(path)`, should return a new path with some tansformation
+  applied (e.g. apply a transformation on the path of a rule, like
+  replacing placeholders, etc...). The modified path must still be valid
+  in the context of the parsing (for example, do not use `mangle()` to
+  prepend a chroot path). If this returns an empty string (or `None`),
+  the rule is dropped;
+
+* `emit(path)`, like `mangle()`, but only called when the profile rules
+  are actually emitted. `emit()` can be used for example, to prepend a
+  chroot path to the emitted paths. It is not allowed that the returned
+  string be empty (or `None`).
+
+A plugin may be both a `scan` plugin and a `mangle` plugin if it
+implements adequate methods, but this is usually frowned upon.
