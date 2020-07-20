@@ -96,6 +96,10 @@ class AAScanArgParser(argparse.ArgumentParser):
 
             self.group.add_argument(*new_args, **kwargs)
 
+        def ToggleAction(self, true_list):
+            new_list = ['--{}-{}'.format(self.plugin, i[2:]) for i in true_list]
+            return AAScanArgParser.ToggleAction(new_list)
+
     @classmethod
     def ToggleAction(_, true_list):
         """Return a toggle action class which is true for items in the true_list
