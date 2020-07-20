@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 import collections
+import logging
 import os
+import sys
 
 import aa_scan3.utils
 import aa_scan3.plugins
@@ -44,6 +46,8 @@ def main():
     parser.add_argument('--enforce', '--complain', default='--enforce',
                         action=aa_scan3.utils.AAScanArgParser.ToggleAction(['--enforce']),
                         help='Set profiles in enforced or complain mode, respectively.')
+    parser.add_argument('--debug', action='store_true',
+                        help='Generate a lot of debugging information.')
     parser.add_argument('file', metavar='FILE',
                         help='The file to scan and generate an AppArmor profile for')
 
@@ -63,9 +67,13 @@ def main():
 
     profile = aa_scan3.utils.AAprofile(args.file)
 
+    logging.basicConfig(stream=sys.stdout, format='%(message)s',
+                        level=logging.DEBUG if args.debug else logging.WARNING)
+
     base_args = ['root_dir', 'staging_dir']
     for plugin in plugins:
         setattr(plugins[plugin]["scanner"], 'profile', profile)
+        setattr(plugins[plugin]["scanner"], 'logger', aa_scan3.utils.AALogger(plugin))
         for arg in base_args:
             setattr(plugins[plugin]["scanner"], arg, getattr(args, arg))
         for arg in [a for a in dir(args) if a.startswith(plugin+'_')]:

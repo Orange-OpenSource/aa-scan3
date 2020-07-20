@@ -1,4 +1,6 @@
 import argparse
+import logging
+import sys
 
 
 class AAprofile:
@@ -109,3 +111,27 @@ class AAScanArgParser(argparse.ArgumentParser):
                 return value in true_list
 
         return _ToggleAction
+
+
+class AALogger:
+    def __init__(self, plugin):
+        self.prefix = '{}: '.format(plugin)
+
+    def __call__(self, msg, *args, **kwargs):
+        self.debug(msg, *args, **kwargs)
+
+    def debug(self, msg, *args, **kwargs):
+        logging.debug(self.prefix + msg, *args, **kwargs)
+
+    def info(self, msg, *args, **kwargs):
+        logging.info(self.prefix + msg, *args, **kwargs)
+
+    def warning(self, msg, *args, **kwargs):
+        logging.warning(self.prefix + msg, *args, **kwargs)
+
+    def error(self, msg, *args, **kwargs):
+        logging.error(self.prefix + msg, *args, **kwargs)
+
+    def critical(self, msg, *args, **kwargs):
+        logging.critical(self.prefix + msg, *args, **kwargs)
+        sys.exit(1)

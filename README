@@ -59,11 +59,18 @@ Three extra attributes are also set:
 * `profile`, which represent the current profile to generate; see below
    for the methods exposed by that object;
 
+* `logger`, which exposes the same `debug()` through `critical()`
+  functions that the Python
+  https://docs.python.org/3/library/logging.html[logging module] would,
+  with `critical()` additionally calling `sys.exit(1)` after printing
+  the message;
+
 * `root_dir` and `staging_dir`, as set from the generic `aa-scan3`
   options.
 
 NOTE: The attributes are set after the `__init__()` method is called, so
-they are *not* available in `__init__()`.
+they are *not* available in `__init__()`; it is especially not possible
+to log from `__init__()`.
 
 The `profile` attribute added to the plugin instance exposes the following
 methods:
@@ -92,3 +99,6 @@ methods:
 * `end_child_profile()`: end the current child profile; subsequent calls
   to `add_path()`, `add_capability()`, or `add_network()` will apply to
   the main profile.
+
+The `logger` attribute is callable, which is equivalent to calling
+`logger.debug()`.
