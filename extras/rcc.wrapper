@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# How to use:
+# - rename the original rcc tool from Qt5 to rcc.real
+# - copy this script over the location of the original rcc
+# - use aa-scan3 qrc plugin
+
+set -e
+
+PATTERN="@PATTERN@"
+
+main() {
+    local rcc="${1}"; shift
+    local opt store output uniq q
+    local -a opts qrc
+
+    opts=( "${@}" )
+
+    store=true
+    while [ ${#} -ne 0 ]; do
+        case "${1}" in
+          (-list|--list)
+            store=false
+            ;;
+          (-o|--output|-output)
+            output="${2}"
+            shift
+            ;;
+          (*.qrc)
+            qrc+=( "${1}" )
+            ;;
+        esac
+        shift
+    done
+    if [ -z "${output}" ]; then
+        store=false
+    fi
+
+    if ${store}; then
+        opts+=( --no-compress )
+    fi
+
+    "${rcc}.real" "${opts[@]}"
+
+    if ${store}; then
+        uniq="$( sha1sum <<<"${output}" |cut -d ' ' -f 1 )"
+        {
+            printf '\n\nconst char *__qrc_list_%s[] = {\n' "${uniq}"
+            for q in "${qrc[@]}"; do
+                case "${q}" in
+                (/*)
+                    printf '"\\n%s:%s",\n' "${PATTERN}" "${q}"
+                    ;;
+                (*)
+                    printf '"\\n%s:%s/%s",\n' "${PATTERN}" "$(pwd)" "${q}"
+                    ;;
+                esac
+            done
+            printf '};\n'
+        } >>"${output}"
+    fi
+}
+
+main "${0}" "${@}"
