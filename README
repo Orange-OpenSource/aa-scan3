@@ -54,8 +54,41 @@ For example, if the plugin `foo` calls `parser.add_argument("--hello")`,
 then the option `--foo-hello` is registered, and the attribute `hello`
 is added to the instance of `foo.Scanner()`.
 
-Two extra attributes are also set, `root_dir` and `staging_dir`, as set
-from the generic `aa-scan3` options of the same names.
+Three extra attributes are also set:
+
+* `profile`, which represent the current profile to generate; see below
+   for the methods exposed by that object;
+
+* `root_dir` and `staging_dir`, as set from the generic `aa-scan3`
+  options.
 
 NOTE: The attributes are set after the `__init__()` method is called, so
 they are *not* available in `__init__()`.
+
+The `profile` attribute added to the plugin instance exposes the following
+methods:
+
+* `get_path()`: returns the path of the input file
+
+* `add_path(path, mode)`: add a rule to allow the specified `path` to be
+  accessed with
+  https://gitlab.com/apparmor/apparmor/-/wikis/AppArmor_Core_Policy_Reference#file-permissions[`mode`].
+
+* `add_capability(capability)`: add a rule to allow the specified
+  `capability`, from the list of
+  https://gitlab.com/apparmor/apparmor/-/wikis/AppArmor_Core_Policy_Reference#capability-rules[supported
+  capabilities].
+
+* `add_network(domain, protocol)`: add a rule to allow network access
+  for the the specified
+  https://gitlab.com/apparmor/apparmor/-/wikis/AppArmor_Core_Policy_Reference#network-rules[domain
+  and protocol].
+
+* `start_child_profile(path)`: start a child profile for program at
+  `path`; subsequent calls to `add_path()`, `add_capability()`, or
+  `add_network()` will apply to this child profile. Only one level
+  of child profile nestign is supported.
+
+* `end_child_profile()`: end the current child profile; subsequent calls
+  to `add_path()`, `add_capability()`, or `add_network()` will apply to
+  the main profile.

@@ -61,8 +61,11 @@ def main():
 
     args = parser.parse_args()
 
+    profile = aa_scan3.utils.AAprofile(args.file)
+
     base_args = ['root_dir', 'staging_dir']
     for plugin in plugins:
+        setattr(plugins[plugin]["scanner"], 'profile', profile)
         for arg in base_args:
             setattr(plugins[plugin]["scanner"], arg, getattr(args, arg))
         for arg in [a for a in dir(args) if a.startswith(plugin+'_')]:

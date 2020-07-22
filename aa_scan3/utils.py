@@ -1,6 +1,41 @@
 import argparse
 
 
+class AAprofile:
+    def __init__(self, path):
+        self.path = path
+
+    def get_path(self):
+        return self.path
+
+    def add_path(self, path, mode):
+        pass
+
+    def add_capability(self, capability):
+        pass
+
+    def add_network(self, domain, protocol):
+        pass
+
+    def start_child_profile(self, path):
+        pass
+
+    def end_child_profile(self):
+        pass
+
+    def get_paths(self):
+        return []
+
+    def get_capabilities(self):
+        return []
+
+    def get_networks(self):
+        return []
+
+    def get_children(self):
+        return []
+
+
 class AAScanArgParser(argparse.ArgumentParser):
     def __init__(self, *args, **kwargs):
         argparse.ArgumentParser.__init__(self,
