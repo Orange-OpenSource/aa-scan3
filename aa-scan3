@@ -109,6 +109,13 @@ def main():
         for arg in [a for a in dir(args) if a.startswith(plugin+'_')]:
             setattr(plugins[plugin]["scanner"], arg[len(plugin)+1:], getattr(args, arg))
 
+    scan_files = {args.file}
+    for p in plugins_type['once']:
+        logging.debug('Running {}.once on {}'.format(p, args.file))
+        _f = plugins[p]['scanner'].once(args.file)
+        _f and logging.debug('Adding files {}'.format(_f))
+        scan_files.update(_f)
+
 
 if __name__ == "__main__":
     main()
