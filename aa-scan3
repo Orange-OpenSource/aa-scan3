@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import collections
+import itertools
 import logging
 import os
 import re
@@ -115,6 +116,32 @@ def main():
         _f = plugins[p]['scanner'].once(args.file)
         _f and logging.debug('Adding files {}'.format(_f))
         scan_files.update(_f)
+
+    all_files = set()
+    while scan_files:
+        logging.debug('----')
+        logging.debug('New scan loop with {}'.format(scan_files))
+        to_scan = set()
+        for f, p in itertools.product(scan_files, plugins_type['mangle']):
+            logging.debug('Running {}.mangle on {}'.format(p, f))
+            _f = plugins[p]["scanner"].mangle(f)
+            if _f != f:
+                logging.debug('Replacing {} with {}'.format(f, _f))
+                f = _f
+            to_scan.add(f)
+
+        # Only keep those not already scanned
+        to_scan.difference_update(all_files)
+        # ... and add them to the list
+        all_files.update(to_scan)
+
+        scan_files = set()
+        for f, p in itertools.product(to_scan, plugins_type['scan']):
+            logging.debug('Running {}.scan on {}'.format(p, f))
+            _f = plugins[p]["scanner"].scan(f)
+            if _f:
+                logging.debug('Adding files {}'.format(_f))
+            scan_files.update(_f)
 
 
 if __name__ == "__main__":
