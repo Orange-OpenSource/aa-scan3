@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import collections
+import contextlib
 import itertools
 import logging
 import os
@@ -142,6 +143,59 @@ def main():
             if _f:
                 logging.debug('Adding files {}'.format(_f))
             scan_files.update(_f)
+
+    @contextlib.contextmanager
+    def _get_outfile():
+        f = None
+        try:
+            if args.output_file:
+                f = open(args.output_file, 'w')
+                yield f
+            else:
+                yield sys.stdout
+        finally:
+            if f:
+                f.close()
+
+    logging.debug('---')
+    logging.debug('Emiting profile...')
+    with _get_outfile() as outfile:
+        def _emit_path(path):
+            for s in [plugins[p]["scanner"] for p in plugins_type['emit']]:
+                logging.debug('Running {}.emit on {}'.format(p, path))
+                _path = s.emit(path)
+                if _path != path:
+                    logging.debug('Replacing {} with {}'.format(path, _path))
+                path = _path
+            return re.sub('/+', '/', path)
+
+        def _dump_profile(depth, profile):
+            def dump(rule):
+                if depth:
+                    print('{:{width}}'.format('', width=4*depth), end='', file=outfile)
+                print(rule, file=outfile)
+
+            path = profile.get_path()
+            dump('{}{}{} {{'.format('profile ' if depth else '',
+                                    _emit_path(path),
+                                    '' if args.enforce else ' flags=(complain)'))
+
+            for path, mode in sorted(profile.get_paths(), key=lambda x: _emit_path(x[0])):
+                dump('    {} {},'.format(_emit_path(path), mode))
+
+            for capability in sorted(profile.get_capabilities()):
+                dump('    capability {},'.format(capability))
+
+            for domain, proto in sorted(profile.get_networks()):
+                dump('    network {} {},'.format(domain, proto))
+
+            for child in profile.get_children():
+                dump('    {} Cx,'.format(_emit_path(child.get_path())))
+                _dump_profile(depth+1, child)
+
+            dump('}')
+
+        _dump_profile(0, profile)
 
 
 if __name__ == "__main__":
