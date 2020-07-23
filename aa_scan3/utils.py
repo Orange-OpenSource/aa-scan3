@@ -5,15 +5,30 @@ import sys
 
 
 class AAprofile:
+    X_MOD = set('pPcCuUi')
+
     def __init__(self, path, path_filter):
         self.path = path
         self.filter = path_filter
+        self.paths = dict()
 
     def get_path(self):
         return self.filter(self.path)
 
     def add_path(self, path, mode):
-        pass
+        path = self.filter(path)
+        if not path: return  # noqa: E701
+        try:
+            old_x = set(self.paths[path]) & AAprofile.X_MOD
+            new_x = set(mode) & AAprofile.X_MOD
+            if len(old_x ^ new_x) > 1:
+                raise ValueError('Adding new executable mode {}, while {} already used'.format(new_x,
+                                                                                               old_x))
+            logging.debug('Updating {} with new mode {}'.format(path, mode))
+            self.paths[path] += mode
+        except KeyError:
+            logging.debug('Adding {} with mode {}'.format(path, mode))
+            self.paths[path] = mode
 
     def add_capability(self, capability):
         pass
@@ -28,7 +43,12 @@ class AAprofile:
         pass
 
     def get_paths(self):
-        return []
+        for p in self.paths:
+            x = set(self.paths[p]) & AAprofile.X_MOD
+            if x:
+                yield (p, '{}x'.format(''.join(x)))
+            yield (p, ''.join(sorted(set(self.paths[p]) -
+                                        (AAprofile.X_MOD | {'x'}))))
 
     def get_capabilities(self):
         return []
