@@ -1,4 +1,5 @@
 import argparse
+import collections
 import logging
 import pathlib
 import sys
@@ -12,6 +13,7 @@ class AAprofile:
         self.filter = path_filter
         self.paths = dict()
         self.capabilities = set()
+        self.networks = collections.defaultdict(set)
 
     def get_path(self):
         return self.filter(self.path)
@@ -35,7 +37,7 @@ class AAprofile:
         self.capabilities.add(capability)
 
     def add_network(self, domain, protocol):
-        pass
+        self.networks[domain].add(protocol)
 
     def start_child_profile(self, path):
         pass
@@ -56,7 +58,9 @@ class AAprofile:
             yield cap
 
     def get_networks(self):
-        return []
+        for domain in self.networks:
+            for proto in self.networks[domain]:
+                yield (domain, proto)
 
     def get_children(self):
         return []
