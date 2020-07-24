@@ -11,6 +11,7 @@ class AAprofile:
         self.path = path
         self.filter = path_filter
         self.paths = dict()
+        self.capabilities = set()
 
     def get_path(self):
         return self.filter(self.path)
@@ -31,7 +32,7 @@ class AAprofile:
             self.paths[path] = mode
 
     def add_capability(self, capability):
-        pass
+        self.capabilities.add(capability)
 
     def add_network(self, domain, protocol):
         pass
@@ -51,7 +52,8 @@ class AAprofile:
                                         (AAprofile.X_MOD | {'x'}))))
 
     def get_capabilities(self):
-        return []
+        for cap in self.capabilities:
+            yield cap
 
     def get_networks(self):
         return []
