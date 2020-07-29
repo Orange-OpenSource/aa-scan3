@@ -3,6 +3,7 @@
 import collections
 import logging
 import os
+import re
 import sys
 
 import aa_scan3.utils
@@ -85,7 +86,16 @@ def main():
 
     args = parser.parse_args()
 
-    profile = aa_scan3.utils.AAprofile(args.file)
+    def _mangle_path(path):
+        for p in plugins_type['mangle']:
+            logging.debug('Running mangle on {}'.format(path))
+            _path = plugins[p]["scanner"].mangle(path)
+            if _path != path:
+                logging.debug('Replacing {} with {}'.format(path, _path))
+            path = _path
+        return re.sub('/+', '/', path)
+
+    profile = aa_scan3.utils.AAprofile(args.file, _mangle_path)
 
     logging.basicConfig(stream=sys.stdout, format='%(message)s',
                         level=logging.DEBUG if args.debug else logging.WARNING)

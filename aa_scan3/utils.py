@@ -4,11 +4,12 @@ import sys
 
 
 class AAprofile:
-    def __init__(self, path):
+    def __init__(self, path, path_filter):
         self.path = path
+        self.filter = path_filter
 
     def get_path(self):
-        return self.path
+        return self.filter(self.path)
 
     def add_path(self, path, mode):
         pass
