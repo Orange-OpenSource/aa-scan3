@@ -14,44 +14,64 @@ class AAprofile:
         self.paths = dict()
         self.capabilities = set()
         self.networks = collections.defaultdict(set)
+        self.current_child = None
+        self.children = dict()
 
     def get_path(self):
         return self.filter(self.path)
 
     def add_path(self, path, mode):
-        path = self.filter(path)
-        if not path: return  # noqa: E701
-        try:
-            old_x = set(self.paths[path]) & AAprofile.X_MOD
-            new_x = set(mode) & AAprofile.X_MOD
-            if len(old_x ^ new_x) > 1:
-                raise ValueError('Adding new executable mode {}, while {} already used'.format(new_x,
-                                                                                               old_x))
-            logging.debug('Updating {} with new mode {}'.format(path, mode))
-            self.paths[path] += mode
-        except KeyError:
-            logging.debug('Adding {} with mode {}'.format(path, mode))
-            self.paths[path] = mode
+        if self.current_child:
+            self.children[self.current_child].add_path(path, mode)
+        else:
+            path = self.filter(path)
+            if not path: return  # noqa: E701
+            try:
+                old_x = set(self.paths[path]) & AAprofile.X_MOD
+                new_x = set(mode) & AAprofile.X_MOD
+                if len(old_x ^ new_x) > 1:
+                    raise ValueError('Adding new executable mode {}, while {} already used'.format(new_x,
+                                                                                                   old_x))
+                logging.debug('Updating {} with new mode {}'.format(path, mode))
+                self.paths[path] += mode
+            except KeyError:
+                logging.debug('Adding {} with mode {}'.format(path, mode))
+                self.paths[path] = mode
 
     def add_capability(self, capability):
-        self.capabilities.add(capability)
+        if self.current_child:
+            self.children[self.current_child].add_capability(capability)
+        else:
+            self.capabilities.add(capability)
 
     def add_network(self, domain, protocol):
-        self.networks[domain].add(protocol)
+        if self.current_child:
+            self.children[self.current_child].add_network(domain, protocol)
+        else:
+            self.networks[domain].add(protocol)
 
     def start_child_profile(self, path):
-        pass
+        if self.current_child:
+            raise RecursionError('recursive children not allowed,'
+                                 + ' trying to add {} while handling {}'.format(self.current_child,
+                                                                                path))
+        self.current_child = path
+        if path not in self.children:
+            self.children[path] = AAprofile(path, self.filter)
 
     def end_child_profile(self):
-        pass
+        if self.current_child is None:
+            raise RecursionError('not in a child profile')
+        self.current_child = None
 
     def get_paths(self):
         for p in self.paths:
             x = set(self.paths[p]) & AAprofile.X_MOD
             if x:
                 yield (p, '{}x'.format(''.join(x)))
-            yield (p, ''.join(sorted(set(self.paths[p]) -
-                                        (AAprofile.X_MOD | {'x'}))))
+            m = set(self.paths[p]) - (AAprofile.X_MOD | {'x'})
+            if m:
+                yield (p, ''.join(sorted(m)))
 
     def get_capabilities(self):
         for cap in self.capabilities:
@@ -63,7 +83,8 @@ class AAprofile:
                 yield (domain, proto)
 
     def get_children(self):
-        return []
+        for path in self.children:
+            yield self.children[path]
 
     @staticmethod
     def joinpath(*components):
