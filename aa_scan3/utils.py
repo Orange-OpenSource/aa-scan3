@@ -1,5 +1,6 @@
 import argparse
 import logging
+import pathlib
 import sys
 
 
@@ -37,6 +38,16 @@ class AAprofile:
 
     def get_children(self):
         return []
+
+    @staticmethod
+    def joinpath(*components):
+        """like os.path.join(), except components with a
+        leading '/' do not ignore previous components
+        """
+        p = pathlib.Path('/')
+        for comp in components:
+            p = p.joinpath(comp[1:] if comp[0] == '/' else comp)
+        return str(p)
 
 
 class AAScanArgParser(argparse.ArgumentParser):
