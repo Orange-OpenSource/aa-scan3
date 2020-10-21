@@ -67,7 +67,8 @@ class Scanner:
                     path, mode = re.split(' +', l)
                     self.profile.add_path(path, mode)
                     if 'm' in mode:
-                        yield path
+                        if '*' not in path:
+                            yield path
                 elif l.startswith('capability '):
                     self.logger('    -> is a capability')
                     _, cap = re.split(' +', l)
