@@ -100,6 +100,10 @@ methods:
   to `add_path()`, `add_capability()`, or `add_network()` will apply to
   the main profile.
 
+* `joinpath(*components)`: like `os.path.join()`, except components
+  with a leading '/' do not ignore previous components. For
+  example, `joinpath('/foo', '/bar')` will yield `/boo/bar`.
+
 The `logger` attribute is callable, which is equivalent to calling
 `logger.debug()`.
 
