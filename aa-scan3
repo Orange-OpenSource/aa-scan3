@@ -90,7 +90,7 @@ def main():
 
     for plugin in sorted(plugins):
         p = aa_scan3.plugins.plugins[plugin]
-        group = parser.add_argument_group(title='Plugin {} [{}]'.format(plugin,
+        group = parser.add_argument_group(title='plugin {} [{}]'.format(plugin,
                                                                         ', '.join(plugins[plugin]['type'])),
                                           description=p.__doc__)
         plugins[plugin]["scanner"] = p.Scanner(aa_scan3.utils.AAScanArgParser._ArgGroupPlugin(plugin,
