@@ -58,21 +58,27 @@ class Scanner:
             yield from self.read_one_snippet(snippet)
 
     def read_one_snippet(self, snippet):
-        self.logger('>>{}<<'.format(snippet))
+        self.logger('parsing snippet {!r}'.format(snippet))
         with open(snippet, 'r') as f:
             for l in (l.strip().rstrip(',') for l in f):
+                self.logger('  parsing line {!r}'.format(l))
                 if l.startswith('/'):
+                    self.logger('    -> is a path')
                     path, mode = re.split(' +', l)
                     self.profile.add_path(path, mode)
                     if 'm' in mode:
                         yield path
                 elif l.startswith('capability '):
+                    self.logger('    -> is a capability')
                     _, cap = re.split(' +', l)
                     self.profile.add_capability(cap)
                 elif l.startswith('network '):
+                    self.logger('    -> is a network')
                     _, domain, proto = re.split(' +', l)
                     self.profile.add_network(domain, proto)
                 elif l.startswith('profile '):
+                    self.logger('    -> starts a child profile')
                     self.profile.start_child_profile(re.split(' +', l)[-2])
                 elif l.startswith('}'):
+                    self.logger('    -> ends a child profile')
                     self.profile.end_child_profile()
