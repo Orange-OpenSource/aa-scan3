@@ -20,6 +20,25 @@ A snippet file contains one or more pattern-rules, one per line.
 No sanity-check is done on the file, and each line must end with
 a new-line '\\n' character (even the last one).
 
+When a file access rule contains a wildcard, and its mode contains
+'m' (i.e.  the file is a memory-mapped executable, aka a shared
+library), then some wildcard expansion is attempted (subject to the
+expand-wildcards option), which works as follow:
+
+  - a path that is exactly '/**', is not expanded;
+
+  - paths are expanded relative to root_dir (as specified with the
+    global option --root-dir);
+
+  - the '**' stem only matches arbitrarily deep directory components,
+    but does not match any file; for example '/foo/**.bar' will find
+    the directories '/foo/.bar/', '/foo/a.bar/', and '/foo/b/c/d.bar/',
+    but will not find the files '/foo/0.bar', or '/foo/1/2/3.bar', or
+    '/foo/1/2/3/.bar'. To match files at any arbitrary depth, use both
+    '**' and '*'; for example, '/foo/**/*.bar' will find both the
+    directories and the files listed above. This is a deviation from
+    how AppArmor interprets '**'.
+
 The snippet plugin also has (very crude) support for child
 profiles. Child profiles are detected as a line starting with
 the keyword 'profile' followed by a path and ending with an
@@ -32,6 +51,7 @@ a consistent indentation in the generated file).
 
 import glob
 import os
+import pathlib
 import re
 
 
@@ -46,6 +66,9 @@ class Scanner:
                             + ' This option can be specified more than once, in which'
                             + ' case all files will be used. This option is not'
                             + ' impacted by the --disable option.')
+        parser.add_argument('--expand-wildcards', action='store_true',
+                            help='Expand path wildcards that appear in snippets, when'
+                            + ' the associated mode allows memory-mapping (m) the path')
 
     def once(self, path):
         for snippet in self.file:
@@ -67,8 +90,7 @@ class Scanner:
                     path, mode = re.split(' +', l)
                     self.profile.add_path(path, mode)
                     if 'm' in mode:
-                        if '*' not in path:
-                            yield path
+                        yield from self.do_expand_wildcards(path)
                 elif l.startswith('capability '):
                     self.logger('    -> is a capability')
                     _, cap = re.split(' +', l)
@@ -83,3 +105,25 @@ class Scanner:
                 elif l.startswith('}'):
                     self.logger('    -> ends a child profile')
                     self.profile.end_child_profile()
+
+    def do_expand_wildcards(self, path):
+        """Expand wildcards in path, relative to the root_dir, and
+        yield all matching regular files. The /** path is treated
+        specially, and is not expanded, and nothing is yielded.
+        """
+        if not self.expand_wildcards:
+            if not '*' in path:
+                yield path
+            return
+        if path == '/**':
+            self.logger('not expanding {!r}'.format(path))
+            return
+        self.logger('will try to expand {!r}'.format(path))
+        # Use path[1:] to get rid of the leading '/' and
+        # get a relative path
+        for f in pathlib.Path(self.root_dir).glob(path[1:]):
+            p = pathlib.Path('/').joinpath(f.relative_to(self.root_dir))
+            self.logger('expanding {!r} -> {!r}'.format(path, str(p)))
+            if not f.is_file():
+                continue
+            yield str(p)
