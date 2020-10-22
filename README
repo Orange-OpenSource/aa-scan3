@@ -37,7 +37,10 @@ underscores and numbers.
 
 A plugin must contain a docstring at the module-level, that provides
 the help text for that plugin, help text that will be displayed in the
-output of `aa-scan3 --help` in a section dedicated to that plugin.
+output of `aa-scan3 --help` in a section dedicated to that plugin. The
+help text is reformatted to fit in the screen, existing paragraphs are
+retained, and lines starting with +*+ and +-+ are rendered as bullet
+lists and numbered lists, respectively.
 
 A plugin must declare a class named `Scanner`. The constructor for that
 class must accept a single parameter, `parser`, which is an object that

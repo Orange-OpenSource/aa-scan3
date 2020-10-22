@@ -113,12 +113,41 @@ class AAScanArgParser(argparse.ArgumentParser):
                                          *args, **kwargs)
 
     class DescFormatter(argparse.HelpFormatter):
-        """Format text like argparse.HelpFormatter, but keeping existing paragraphs"""
+        """Format text like argparse.HelpFormatter, but keeping existing
+        paragraphs, and with a crude rendering of bullet- and numbered-lists.
+        """
         def _fill_text(self, text, width, indent):
             sup = super(AAScanArgParser.DescFormatter, self)
             paragraphs = []
+            li = 0
             for p in text.split('\n\n'):
-                paragraphs.append(sup._fill_text(p, width, indent))
+                if p.strip()[0] == '-':
+                    li += 1
+                    new_p = sup._fill_text('{}. {}'.format(li, p.strip(' -')),
+                                           width, indent+'  ').splitlines()
+                    if len(new_p) == 1:
+                        paragraphs.append(new_p[0])
+                    else:
+                        # If more than one line, reflow lines 2-onward
+                        l1 = new_p[0]
+                        rest = sup._fill_text(' '.join(new_p[1:]), width,
+                                              indent+'  {:{}}'.format(' ',
+                                                                      len(str(li))+2))
+                        paragraphs.append(l1+'\n'+rest)
+                elif p.strip()[0] == '*':
+                    li = 0
+                    new_p = sup._fill_text(p.strip(), width, indent+'  ').splitlines()
+                    if len(new_p) == 1:
+                        paragraphs.append(new_p[0])
+                    else:
+                        # If more than one line, reflow lines 2-onward
+                        l1 = new_p[0]
+                        rest = sup._fill_text(' '.join(new_p[1:]), width,
+                                              indent+'    ')
+                        paragraphs.append(l1+'\n'+rest)
+                else:
+                    li = 0
+                    paragraphs.append(sup._fill_text(p, width, indent))
             return "\n\n".join(paragraphs)
 
     # Inspired by: https://stackoverflow.com/questions/12151306
