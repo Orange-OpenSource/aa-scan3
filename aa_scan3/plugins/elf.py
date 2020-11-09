@@ -1,3 +1,12 @@
+# Software Name : aa-scan3
+# SPDX-FileCopyrightText: Copyright (c) 2020 Orange
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# This software is distributed under the GPLv2;
+# see the COPYING file for more details.
+#
+# Author: Yann E. MORIN <yann.morin@orange.com> et al.
+
 """
 Test if the file is an ELF, and if so emit the list of patterns
 to allow it load the libraries specified in DT_NEEDED flags.

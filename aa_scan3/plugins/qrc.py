@@ -1,3 +1,12 @@
+# Software Name : aa-scan3
+# SPDX-FileCopyrightText: Copyright (c) 2020 Orange
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# This software is distributed under the GPLv2;
+# see the COPYING file for more details.
+#
+# Author: Yann E. MORIN <yann.morin@orange.com> et al.
+
 """
 Test if the ELF file embeds resources from one or more qrc
 files, in which case scan it to generate a ruleset to allow the
