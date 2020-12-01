@@ -10,6 +10,12 @@
 """
 Test if the file has associated AppArmor snippets in .aa files.
 
+Snippets are located in the `staging` directory, and are named
+after the file they apply to, with any `.aa*` extension added.
+For example, when scanning file `/bin/foo`, any file that matches
+`/bin/foo.aa*` will be considered a snippet that contains rules
+to be included in the profile.
+
 A snippet file contains one or more pattern-rules, one per line.
 No sanity-check is done on the file, and each line must end with
 a new-line '\\n' character (even the last one).
