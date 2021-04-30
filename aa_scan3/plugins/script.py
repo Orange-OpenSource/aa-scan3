@@ -19,6 +19,7 @@ class Scanner:
         if interpreter.split()[0] == '/usr/bin/env':
             self.logger.critical('nested interpreter {!r} not supported'.format(interpreter))
         self.profile.add_path(path, 'r')
+        interpreter = interpreter.split()[0]
         self.logger('adding interpreter {!r}'.format(interpreter))
         if self.self_read:
             self.profile.add_path(interpreter, 'r')
